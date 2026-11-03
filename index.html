@@ -60,7 +60,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ★★★ 共有するURLをここに入れてください (例: 'https://example.com/') ★★★ */
-const SHARE_URL='';
+const SHARE_URL='https://oi-so.github.io/web_driving/';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>v<a?a:v>b?b:v,smooth=t=>t*t*(3-2*t);
 const CD=JSON.parse($('cars').textContent),KEYS=JSON.parse($('keys').textContent);
 const CARS={at:Object.assign({},CD.base,CD.at),mt:Object.assign({},CD.base,CD.mt)};
