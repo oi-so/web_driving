@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <!-- OGP -->
-    <meta property="og:title" content="Web Driving Simulator">
-    <meta property="og:description" content="スマートフォンで遊べる本格的なドライビングシミュレーター">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://oi-so.github.io/web_driving/">
-    <meta property="og:image" content="https://oi-so.github.io/web_driving/ogp.jpg">
-
-    <!-- X (Twitter) Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Web Driving Simulator">
-    <meta name="twitter:description" content="スマートフォンで遊べる本格的なドライビングシミュレーター">
-    <meta name="twitter:image" content="https://oi-so.github.io/web_driving/ogp.jpg">
+<!-- OGP -->
+<meta property="og:title" content="Web Driving Simulator">
+<meta property="og:description" content="スマートフォンで遊べる本格的なドライビングシミュレーター">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://oi-so.github.io/web_driving/">
+<meta property="og:image" content="https://oi-so.github.io/web_driving/ogp.jpg">
+<!-- X (Twitter) Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Web Driving Simulator">
+<meta name="twitter:description" content="スマートフォンで遊べる本格的なドライビングシミュレーター">
+<meta name="twitter:image" content="https://oi-so.github.io/web_driving/ogp.jpg">
 <title>Web Driving Simulator</title>
 <style>
 :root{color-scheme:dark;--panel:rgba(12,16,24,.62);--fg:#f2f5fa;--dim:#9aa6b8;--ac:#4fd1c5;--bg:#0b0f16;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -62,7 +61,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--
 <div id="pedals" class="p touch"><div class="pad" id="shift"></div><div class="pad pd" id="pClu"><i></i><span>クラッチ</span></div><div class="pad pd" id="pBrk"><i></i><span>ブレーキ</span></div><div class="pad pd" id="pThr"><i></i><span>アクセル</span></div></div>
 <div id="menu"><div class="in"><h1>Web Driving Simulator</h1><p>v0.3 / 日本の道路 · 左側通行 · 右ハンドル</p>
 <p>モード</p><div class="row" id="rMode"><button class="b" data-v="free">自由運転</button><button class="b" data-v="school">教習所</button><button class="b" data-v="city">街乗り</button><button class="b" data-v="race">レース</button></div>
-<p>自由運転のエリア</p><div class="row" id="rArea"><button class="b" data-v="track">サーキット</button><button class="b" data-v="city">街</button></div><p>車両</p><div class="row" id="rCar"><button class="b" data-v="at">AT車</button><button class="b" data-v="mt">MT車</button></div>
+<p id="pArea">自由運転のエリア</p><div class="row" id="rArea"><button class="b" data-v="track">サーキット</button><button class="b" data-v="city">街</button></div><p id="pCourse">教習コース</p><div class="row" id="rCourse"><button class="b" data-v="basic">操作編</button><button class="b" data-v="slalom">スラローム編</button><button class="b" data-v="scurve">S字編</button><button class="b" data-v="citymini">街教習(短め)</button></div><p>車両</p><div class="row" id="rCar"><button class="b" data-v="at">AT車</button><button class="b" data-v="mt">MT車</button></div>
 <p>設定</p><div class="row" id="rSet"><button class="b" id="bAbs">ABS</button><button class="b" id="bEsc">ESC</button><button class="b" id="bTc">TCS</button><button class="b" id="bHud">HUD</button><button class="b" id="bTch">タッチ操作</button><button class="b" id="bAs">自動共有</button></div><button id="go">スタート</button>
 </div></div>
 
@@ -77,7 +76,7 @@ const SHARE_URL='https://oi-so.github.io/web_driving/';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>v<a?a:v>b?b:v,smooth=t=>t*t*(3-2*t);
 const CD=JSON.parse($('cars').textContent),KEYS=JSON.parse($('keys').textContent);
 const CARS={at:Object.assign({},CD.base,CD.at),mt:Object.assign({},CD.base,CD.mt)};
-let car=CARS.at,mode='free',area='track',carKey='at',view=0,running=false,hudOn=true,absOn=true,escOn=true,tcOn=true;
+let car=CARS.at,mode='free',area='track',course='basic',carKey='at',view=0,running=false,hudOn=true,absOn=true,escOn=true,tcOn=true;
 try{const o=JSON.parse(localStorage.getItem('wds')||'{}');mode=o.mode||mode;carKey=o.car||carKey}catch(e){}
 function curve(r){const c=car.curve;if(r<=c[0][0])return c[0][1];for(let i=1;i<c.length;i++)if(r<=c[i][0])return c[i-1][1]+(c[i][1]-c[i-1][1])*(r-c[i-1][0])/(c[i][0]-c[i-1][0]);return c[c.length-1][1]}
 /* ---------- three.js scene ---------- */
@@ -105,6 +104,16 @@ const LOT={x:-200,z:67,w:110,d:105};
 const lot=new THREE.Mesh(new THREE.PlaneGeometry(LOT.w,LOT.d),LM(0x4a4e55));lot.rotation.x=-Math.PI/2;lot.position.set(LOT.x,.02,LOT.z);scene.add(lot);
 const stopBox=new THREE.Mesh(new THREE.PlaneGeometry(3,6),LM(0x2fa84f));stopBox.rotation.x=-Math.PI/2;stopBox.position.set(-215,.05,112);scene.add(stopBox);
 const cones=[];for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.ConeGeometry(.25,.7,12),LM(0xff7a1a));m.position.set(-215+(i%2?3.2:-3.2),.35,42+12*i);scene.add(m);cones.push({m,x:m.position.x,z:m.position.z,hit:false})}
+/* driving-school: S-curve course (独立した直線状のコース, 教習所S字編用) */
+const SC_X0=-330,SC_Z0=10,SC_LEN=90,SC_AMP=12,SC_HALF=2.4;
+const scCenter=z=>SC_X0+SC_AMP*Math.sin(clamp(z-SC_Z0,0,SC_LEN)*Math.PI/SC_LEN*2);
+const scGroup=new THREE.Group();scene.add(scGroup);
+(function(){const poleG=new THREE.CylinderGeometry(.1,.1,.8,8),poleM=LM(0xff7a1a);
+for(let z=0;z<=SC_LEN;z+=4){const cx=scCenter(SC_Z0+z);[-1,1].forEach(side=>{const m=new THREE.Mesh(poleG,poleM);m.position.set(cx+side*SC_HALF,.4,SC_Z0+z);scGroup.add(m)})}
+const fin=new THREE.Mesh(new THREE.PlaneGeometry(SC_HALF*2+1,.8),LM(0xffffff));fin.rotation.x=-Math.PI/2;fin.position.set(scCenter(SC_Z0+SC_LEN),.05,SC_Z0+SC_LEN);scGroup.add(fin)})();
+function scOff(x,z){return Math.abs(x-scCenter(z))}
+/* driving-school: short city-rules lesson goal marker */
+const schGoal=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,40,16,1,true),new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:.4,side:THREE.DoubleSide}));scene.add(schGoal);
 /* scenery */
 const boxes=[];let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
 const nearTrack=(x,z,r)=>{for(let i=0;i<n;i+=4)if((P[i].x-x)**2+(P[i].z-z)**2<r*r)return true;return false};
@@ -133,12 +142,12 @@ function nearestAll(x,z){let b=1e9;for(let i=0;i<n;i++){const d=(P[i].x-x)**2+(P
 function nearest(x,z){let b=1e9,bi=ti;for(let d=-40;d<=40;d++){const k=(ti+d+n)%n,q=P[k],dd=(q.x-x)**2+(q.z-z)**2;if(dd<b){b=dd;bi=k}}ti=bi;return Math.sqrt(b)}
 function reset(){
 car=CARS[carKey];bodyMat.color.set(car.color);let x,z,psi;
-if(mode==='school'){x=-215;z=25;psi=0}else if(CITY()){[x,z]=wp(2.6,20);psi=Math.atan2(WA*WK*Math.cos(WK*20),1)}else{const k=mode==='race'?n-12:0,[tx,tz]=tang(k);psi=Math.atan2(tx,tz);x=P[k].x+tz*1.8;z=P[k].z-tx*1.8}
+if(mode==='school'){if(course==='scurve'){x=scCenter(SC_Z0);z=SC_Z0;psi=0}else if(course==='citymini'){const sp0=wp(2*GS+2.6,2*GS+20);x=sp0[0];z=sp0[1];psi=Math.atan2(WA*WK*Math.cos(WK*(2*GS+20)),1)}else{x=-215;z=25;psi=0}}else if(CITY()){[x,z]=wp(2.6,20);psi=Math.atan2(WA*WK*Math.cos(WK*20),1)}else{const k=mode==='race'?n-12:0,[tx,tz]=tang(k);psi=Math.atan2(tx,tz);x=P[k].x+tz*1.8;z=P[k].z-tx*1.8}
 S={y:0,zv:0,dist:0,top:0,sig:0,sigD:0,sigT:-99999,sigDir:0,grade:0,x,z,psi,vx:0,vy:0,r:0,we:0,on:false,delta:0,g:0,atm:'P',ag:1,ax:0,ay:0,shT:0,cool:0,lock:false,lk:0,slipDrive:0,slip:0,off:false,absAct:false,lockF:false,escAct:false,tcAct:false};
 prev={x,z,psi};if(CITY())S.y=hC(x,z);nearestAll(x,z);camYaw=psi;Object.assign(RACE,{run:mode==='race',started:false,cp:3,lap:0,t:0,ls:0,laps:[]});
-cones.forEach(c=>{c.hit=false;c.m.rotation.z=0;c.m.position.set(c.x,.35,c.z)});[...cones.map(c=>c.m),stopBox,lot].forEach(o=>o.visible=mode==='school');
+cones.forEach(c=>{c.hit=false;c.m.rotation.z=0;c.m.position.set(c.x,.35,c.z)});const schOp=mode==='school'&&(course==='basic'||course==='slalom'),freeTrk=mode==='free'&&area==='track';lot.visible=schOp||freeTrk||mode==='race';stopBox.visible=schOp||freeTrk;cones.forEach(c=>c.m.visible=mode==='school'&&course==='slalom');scGroup.visible=mode==='school'&&course==='scurve';schGoal.visible=mode==='school'&&course==='citymini';if(schGoal.visible){const sg=wp(2*GS+40,2*GS+40);schGoal.position.set(sg[0],20,sg[1])}
 I.thr=I.brk=I.clu=I.steer=0;buildGears();setView(view);cityInit();tutInit();$('info').style.display=mode==='race'||mode==='city'?'block':'none';$('pClu').style.display=car.type==='MT'?'':'none';$('bRes').style.display=mode==='free'?'':'none';layout();
-msg(mode==='school'?'教習所: コーンをスラロームして奥の停止枠へ':mode==='race'?'タイムアタック 3周: スタートラインを通過で計測開始':mode==='city'?'街乗り: 目的地を4か所まわります。左側通行・制限40km/h・信号厳守':(area==='city'?'フリーラン(街): 自由に走れます。高速道路もあります':'自由運転: エンジンを始動してください'),4000)}
+msg(mode==='school'?(course==='basic'?'操作編: アクセル・ブレーキ・ウィンカーなど基本操作を練習します':course==='slalom'?'スラローム編: コーンをスラロームして奥の停止枠へ':course==='scurve'?'S字編: ポールに沿ってS字コースを進みます':'街教習(短め): 一時停止・信号・ウィンカー・歩行者に気をつけて黄色い目印へ'):mode==='race'?'タイムアタック 3周: スタートラインを通過で計測開始':mode==='city'?'街乗り: 目的地を4か所まわります。左側通行・制限40km/h・信号厳守':(area==='city'?'フリーラン(街): 自由に走れます。高速道路もあります(教習所内も走れます)':'自由運転: エンジンを始動してください'),4000)}
 /* gears */
 const ATO=['P','R','N','D'];
 function buildGears(){GL=car.type==='AT'?ATO:['6','5','4','3','2','1','N','R'];$('shift').innerHTML='<b id=knob></b>'+GL.map(v=>`<div>${v}</div>`).join('')}
@@ -192,10 +201,11 @@ const want=s.atm==='D'&&s.ag>=4&&vk>58&&I.thr<.8&&s.shT<=0;s.lock=want||(s.lock&
 s.lk=clamp(s.lk+clamp((s.lock?1:0)-s.lk,-5*H,2*H),0,1)}
 /* collisions */
 for(const b of CITY()?cityBoxes:boxes){const dx=s.x-b.x,dz=s.z-b.z,ox=b.hw+1.4-Math.abs(dx),oz=b.hd+1.4-Math.abs(dz);if(ox>0&&oz>0){if(ox<oz)s.x+=Math.sign(dx)*ox;else s.z+=Math.sign(dz)*oz;s.vx*=.5;s.vy*=.5;s.r*=.6;fb('hit','接触!');if(mode==='city')cityHit()}}
-if(CITY())cityCol();if(mode==='school'){for(const k of cones)if(!k.hit)for(const zl of[1.9,0,-2.3]){const px=s.x+Math.sin(s.psi)*zl,pz=s.z+Math.cos(s.psi)*zl;if((px-k.x)**2+(pz-k.z)**2<1.2){k.hit=true;k.m.rotation.z=1.4;s.vx*=.7;fb('cone','接触(コーン)');break}}
+if(CITY())cityCol();if(mode==='school'&&(course==='basic'||course==='slalom')){if(course==='slalom')for(const k of cones)if(!k.hit)for(const zl of[1.9,0,-2.3]){const px=s.x+Math.sin(s.psi)*zl,pz=s.z+Math.cos(s.psi)*zl;if((px-k.x)**2+(pz-k.z)**2<1.2){k.hit=true;k.m.rotation.z=1.4;s.vx*=.7;fb('cone','接触(コーン)');break}}
 if(s.ax>3.8&&vabs<8&&I.thr>.7)fb('sd','急発進です');if(s.ax<-6.5&&I.brk>.6)fb('sb','急ブレーキです');
 if(c.type==='MT'){if(rpm<1100&&s.g>=2&&I.thr>.4&&vabs>2)fb('g1','ギアが高すぎます: シフトダウン');if(rpm>6000&&s.g>0&&s.g<6)fb('g2','回転が高すぎます: シフトアップ')}
-if(vabs<.3&&(s.x+215)**2+(s.z-112)**2<9)fb('stop','停止位置OK!')}
+if(course==='slalom'&&vabs<.3&&(s.x+215)**2+(s.z-112)**2<9)fb('stop','停止位置OK!')}
+if(mode==='school'&&course==='scurve'&&scOff(s.x,s.z)>SC_HALF+.3)fb('scoff','コースアウトしています')
 if(RACE.run)race(H);if(CITY())city(H)}
 const pass=(a,b,k)=>{const dd=(b-a+n)%n,off=(k-a+n)%n;return dd>0&&dd<100&&off>0&&off<=dd};let pti=0;
 function race(H){const r=RACE;if(!r.started&&Math.abs(S.vx)>.5)r.go=true;if(r.go)r.t+=H;
@@ -221,7 +231,7 @@ $('bHb').onpointerdown=e=>{e.preventDefault();tv.hb=1};['pointerup','pointerleav
 $('bMenu').onclick=()=>{running=false;$('menu').style.display='flex'};
 /* menu */
 function sel(id,get,set){const el=$(id);[...el.children].forEach(b=>{b.classList.toggle('on',b.dataset.v===get());b.onclick=()=>{set(b.dataset.v);[...el.children].forEach(x=>x.classList.toggle('on',x===b))}})}
-sel('rMode',()=>mode,v=>mode=v);sel('rCar',()=>carKey,v=>carKey=v);
+function updateMenuRows(){const sch=mode==='school';$('pArea').style.display=sch?'none':'';$('rArea').style.display=sch?'none':'';$('pCourse').style.display=sch?'':'none';$('rCourse').style.display=sch?'':'none'}sel('rMode',()=>mode,v=>{mode=v;updateMenuRows()});sel('rCar',()=>carKey,v=>carKey=v);sel('rCourse',()=>course,v=>course=v);updateMenuRows();
 $('go').onclick=()=>{try{localStorage.setItem('wds',JSON.stringify({mode,car:carKey}))}catch(e){}audioInit();$('menu').style.display='none';reset();running=true};
 /* ---------- audio ---------- */
 let au=null;
@@ -243,14 +253,54 @@ wheelSpin+=s.vx/car.R*dt;wheels.forEach(w=>w.rotation.x=wheelSpin);fronts.forEac
 if(view===0){let da=psi-camYaw;da=Math.atan2(Math.sin(da),Math.cos(da));camYaw+=da*(1-Math.exp(-dt*4));cam.position.set(x-Math.sin(camYaw)*7.5,y0+3.1,z-Math.cos(camYaw)*7.5);cam.lookAt(x,y0+1.3,z)}
 R.render(scene,cam)}
 /* ===== shifter / tutorial / city ===== */
-const NL=String.fromCharCode(10),CX=1000,CZ=0,GS=120,GN=9,cityBoxes=[],lm=[0,1,2,3].map(()=>LM(0x222222,0x00cc44));let GL=[],C,tut=0,TS=[];
+const NL=String.fromCharCode(10),CX=1000,CZ=0,GS=120,GN=9,cityBoxes=[],lm=[0,1,2,3].map(()=>LM(0x222222,0x00cc44));let GL=[],C,tut=0,TS=[],schFlags={};
 pad($('shift'),(e,el)=>{if(!e)return;const r=el.getBoundingClientRect();setGear(GL[clamp(Math.floor((e.clientY-r.top)/r.height*GL.length),0,GL.length-1)])});
 const TCH=matchMedia('(pointer:coarse)').matches;
-function tutInit(){tut=0;const mt=car.type==='MT',k=(a,b)=>TCH?a:b,sl=['コーンをスラロームして奥へ',()=>S.z>cones[5].z+3],st=['停止枠で止まる'+(mt?'(クラッチを踏む)':''),()=>(S.x+215)**2+(S.z-112)**2<9&&Math.abs(S.vx)<.3];TS=mt?[['クラッチを踏んだままエンジン始動('+k('左のペダル+エンジンボタン','Shift+I')+')',()=>S.on],['クラッチを踏んだまま1速へ('+k('レバーを1へ','E')+')',()=>S.g===1],['クラッチを少しずつ戻して、アクセルで発進',()=>Math.abs(S.vx)>1.5],['速度が上がったらクラッチを踏んで2速へ('+k('レバー','E')+')',()=>S.g>=2],sl,st]:[['エンジン始動('+k('エンジンボタン','I')+')',()=>S.on],['ブレーキを踏みながらDへ('+k('レバーをDへ','Eを3回')+')',()=>S.atm==='D'],['ブレーキを離すとクリープで進みます。アクセルで加速',()=>Math.abs(S.vx)>3],sl,st]}
+function tutInit(){tut=0;schFlags={};const mt=car.type==='MT',k=(a,b)=>TCH?a:b;
+if(mode!=='school'){TS=[];return}
+if(course==='scurve'){TS=[['最初のカーブを曲がる(ポールに当たらないように)',()=>S.z>SC_Z0+SC_LEN*0.45],['最後まで進んでコース完了',()=>S.z>SC_Z0+SC_LEN-3]];return}
+if(course==='citymini'){const sg=wp(2*GS+40,2*GS+40);schGoal.ax=sg;TS=[
+ ['信号のない交差点では一時停止する',()=>schFlags.stop],
+ ['信号を守って進む(赤信号で停止)',()=>schFlags.signal],
+ ['右左折の際はウィンカーを使う',()=>schFlags.wink],
+ ['横断歩道の歩行者に注意する',()=>schFlags.caution],
+ ['黄色い目印の目的地に到着する',()=>Math.hypot(S.x-sg[0],S.z-sg[1])<8]];return}
+const sl=['コーンをスラロームして奥へ',()=>S.z>cones[5].z+3],st=['停止枠で止まる'+(mt?'(クラッチを踏む)':''),()=>(S.x+215)**2+(S.z-112)**2<9&&Math.abs(S.vx)<.3];
+if(course==='slalom'){TS=mt?[['クラッチを踏んだままエンジン始動('+k('左のペダル+エンジンボタン','Shift+I')+')',()=>S.on],['クラッチを踏んだまま1速へ('+k('レバーを1へ','E')+')',()=>S.g===1],['クラッチを少しずつ戻して、アクセルで発進',()=>Math.abs(S.vx)>1.5],['速度が上がったらクラッチを踏んで2速へ('+k('レバー','E')+')',()=>S.g>=2],sl,st]:[['エンジン始動('+k('エンジンボタン','I')+')',()=>S.on],['ブレーキを踏みながらDへ('+k('レバーをDへ','Eを3回')+')',()=>S.atm==='D'],['ブレーキを離すとクリープで進みます。アクセルで加速',()=>Math.abs(S.vx)>3],sl,st];return}
+/* basic: 操作編 */
+TS=mt?[
+ ['クラッチを踏んだままエンジン始動('+k('左のペダル+エンジンボタン','Shift+I')+')',()=>S.on],
+ ['クラッチを踏んだまま1速へ('+k('レバーを1へ','E')+')',()=>S.g===1],
+ ['クラッチを少しずつ戻して、アクセルで発進',()=>Math.abs(S.vx)>2],
+ ['時速20km以上まで加速',()=>Math.abs(S.vx)*3.6>20],
+ ['アクセルを離し、ブレーキでしっかり停止',()=>schFlags.wasFast&&Math.abs(S.vx)<.3],
+ ['左ウィンカーを出す('+k('◀ボタン','Z')+')',()=>schFlags.leftSig],
+ ['右ウィンカーを出す('+k('▶ボタン','X')+')',()=>schFlags.rightSig],
+ ['サイドブレーキを使ってみる('+k('サイドボタン','Space')+')',()=>schFlags.hb]
+]:[
+ ['エンジン始動('+k('エンジンボタン','I')+')',()=>S.on],
+ ['ブレーキを踏みながらDへ('+k('レバーをDへ','Eを3回')+')',()=>S.atm==='D'],
+ ['ブレーキを離すとクリープで進みます。アクセルで加速',()=>Math.abs(S.vx)>2],
+ ['時速20km以上まで加速',()=>Math.abs(S.vx)*3.6>20],
+ ['アクセルを離し、ブレーキでしっかり停止',()=>schFlags.wasFast&&Math.abs(S.vx)<.3],
+ ['左ウィンカーを出す('+k('◀ボタン','Z')+')',()=>schFlags.leftSig],
+ ['右ウィンカーを出す('+k('▶ボタン','X')+')',()=>schFlags.rightSig],
+ ['サイドブレーキを使ってみる('+k('サイドボタン','Space')+')',()=>schFlags.hb]
+]}
 let lastB=-1;
 function sigSound(){const on=(performance.now()/350|0)%2;if(!S.sig){lastB=-1;return}if(on!==lastB){lastB=on;if(au){const x=au.x,t=x.currentTime,o=x.createOscillator(),g=x.createGain();o.type='square';o.frequency.value=on?1800:1300;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g);g.connect(x.destination);o.start(t);o.stop(t+.06)}}}
-function tipUpd(){mapDraw();sigSound();const sg=S.sig,on=(performance.now()/350|0)%2===0;$('sgi').textContent=sg>0?'◀':sg<0?'▶':'';$('sgi').style.color=on?'#ffb020':'#553a08';const tp=$('tip');if(mode!=='school'){tp.style.display='none';return}if(tut<TS.length&&TS[tut][1]()){tut++;if(tut===TS.length)showRes('教習完了!'+NL+'コーン接触 '+cones.filter(c=>c.hit).length+'回')}tp.style.display='block';tp.textContent=tut<TS.length?'('+(tut+1)+'/'+TS.length+') '+TS[tut][0]:'教習完了! コーン接触 '+cones.filter(c=>c.hit).length+'回'}
-const CITY=()=>mode==='city'||(mode==='free'&&area==='city');
+function schoolCityCheck(){const s=S,[U,V]=unwp(s.x,s.z),gi=Math.round(U/GS),gj=Math.round(V/GS),near=Math.abs(U-gi*GS)<9&&Math.abs(V-gj*GS)<9,zAx=Math.abs(Math.cos(s.psi))>Math.abs(Math.sin(s.psi)),sp=Math.abs(s.vx)*3.6;
+if(near&&!hasSig(gi,gj)&&sp<2)schFlags.stop=true;
+if(near&&hasSig(gi,gj)&&lampSt((gi+gj)%2,zAx?0:1,C?C.t:0)===2&&sp>4)schFlags.redIgn=true;
+if(near&&hasSig(gi,gj)&&lampSt((gi+gj)%2,zAx?0:1,C?C.t:0)===0)schFlags.signal=true;
+if(S.sig)schFlags.wink=true;
+for(const p of peds)if(Math.hypot(s.x-p.x,s.z-p.z)<9&&p.walk)schFlags.caution=true}
+function tipUpd(){mapDraw();sigSound();const sg=S.sig,on=(performance.now()/350|0)%2===0;$('sgi').textContent=sg>0?'◀':sg<0?'▶':'';$('sgi').style.color=on?'#ffb020':'#553a08';const tp=$('tip');if(mode!=='school'){tp.style.display='none';return}
+if(S.sig===1)schFlags.leftSig=true;if(S.sig===-1)schFlags.rightSig=true;if(I.hb||tv.hb)schFlags.hb=true;if(Math.abs(S.vx)*3.6>15)schFlags.wasFast=true;
+if(course==='citymini')schoolCityCheck();
+const doneTxt=course==='slalom'?'教習完了! コーン接触 '+cones.filter(c=>c.hit).length+'回':'教習完了!';
+if(tut<TS.length&&TS[tut][1]()){tut++;if(tut===TS.length)showRes(doneTxt)}tp.style.display='block';tp.textContent=tut<TS.length?'('+(tut+1)+'/'+TS.length+') '+TS[tut][0]:doneTxt}
+const CITY=()=>mode==='city'||(mode==='free'&&area==='city')||(mode==='school'&&course==='citymini');
 const WA=10,WK=2*Math.PI/360;
 const wp=(U,V)=>[CX+U+WA*Math.sin(WK*V),CZ+V+WA*Math.sin(WK*U+1)];
 const unwp=(x,z)=>{const u=x-CX,v=z-CZ;let U=u,V=v;for(let i=0;i<4;i++){U=u-WA*Math.sin(WK*V);V=v-WA*Math.sin(WK*U+1)}return[U,V]};
